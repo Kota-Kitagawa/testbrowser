@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+}
