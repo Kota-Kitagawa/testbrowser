@@ -44,15 +44,28 @@ app.get(
       },
 
       onMessage(event, ws) {
-        // 入力データをシェルに書き込む
-        // Bun の subprocess.stdin は直接 write() が使えます（writer() は不要です）
-        if (proc && proc.stdin) {
-          const data = event.data;
-          proc.stdin.write(data);
-          // stdoutに強制的に流す必要はありませんが、
-          // もし反応が悪ければ proc.stdin.flush() を検討します
-        }
-      },
+  try {
+    // 届いたデータを文字列として取得し、JSONとして解析する
+    const message = JSON.parse(event.data.toString());
+
+    if (message.type === 'data') {
+      // typeが 'data' の場合のみ、その中身（content）をシェルに書き込む
+      if (proc && proc.stdin) {
+        proc.stdin.write(message.content);
+      }
+    } else if (message.type === 'resize') {
+      // リサイズ命令の場合、端末のサイズ設定を更新する
+      if (proc && proc.stdin) {
+        const resizeCmd = `stty cols ${message.cols} rows ${message.rows}\n`;
+      }
+    }
+  } catch (e) {
+    // もしJSONとして解析できないデータが届いたら、そのまま書き込む（念のため）
+    if (proc && proc.stdin) {
+      proc.stdin.write(event.data.toString());
+    }
+  }
+},
 
       onClose() {
         if (proc) proc.kill();
@@ -68,7 +81,8 @@ app.get('/api/hello', (c) => {
 
 
 export default {
+  port: 3000,
+  hostname: "0.0.0.0", // これを追加！(すべてのネットワークインターフェースで待機)
   fetch: app.fetch,
-  hostname: "0.0.0.0",
   websocket,
 }

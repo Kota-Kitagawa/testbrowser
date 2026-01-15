@@ -72,26 +72,37 @@ function App() {
       {/* --- ターミナルウィンドウ --- */}
       {isTerminalOpen && (
         <Draggable nodeRef={terminalNodeRef} handle=".title-bar">
-          <div 
-            ref={terminalNodeRef}
-            className="absolute top-40 left-40 w-[600px] h-[400px] bg-black/80 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 overflow-hidden flex flex-col z-20"
-          >
-            <div className="title-bar p-3 flex justify-between items-center bg-white/10 select-none cursor-move">
-              <div className="flex items-center gap-2 text-sm font-medium text-white">
-                <TerminalIcon size={16} />
-                <span>Linux Terminal (Bun)</span>
-              </div>
-              <div className="flex gap-4 px-2">
-                <button onClick={() => setIsTerminalOpen(false)} className="text-white hover:bg-red-500 px-2 rounded">✕</button>
-              </div>
-            </div>
-            
-            {/* ターミナル本体 */}
-            <div className="flex-1 bg-black/50">
-               <TerminalApp />
-            </div>
-          </div>
-        </Draggable>
+  <div 
+    ref={terminalNodeRef}
+    // 初期サイズを style で指定。w-[600px] などのクラスがあるとリサイズを阻害するため削除します。
+    style={{ width: '800px', height: '500px', minWidth: '300px', minHeight: '200px' }}
+    className="absolute top-40 left-40 bg-black/80 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 flex flex-col z-20 overflow-hidden resize both"
+  >
+    {/* タイトルバー */}
+    <div className="title-bar p-3 flex justify-between items-center bg-white/10 select-none cursor-move active:cursor-grabbing">
+      <div className="flex items-center gap-2 text-sm font-medium text-white pointer-events-none">
+        <TerminalIcon size={16} />
+        <span>Linux Terminal (Bun)</span>
+      </div>
+      <div className="flex gap-4 px-2">
+        <button 
+          onClick={() => setIsTerminalOpen(false)} 
+          className="text-white hover:bg-red-500 px-2 rounded transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+    
+    {/* ターミナル本体：flex-1 と min-h-0 で親のサイズ変更に追従させます */}
+    <div className="flex-1 min-h-0 w-full bg-black/50">
+       <TerminalApp />
+    </div>
+
+    {/* 右下のリサイズ用つまみを分かりやすくするための小さな装飾（任意） */}
+    <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize" />
+  </div>
+</Draggable>
       )}
 
       {/* タスクバー (中央配置) */}
