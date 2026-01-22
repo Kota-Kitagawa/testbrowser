@@ -1,7 +1,7 @@
 import { watch } from "chokidar";
 
 // editフォルダを監視
-watch("~/edit").on("all", async (event, path) => {
+watch("./edit").on("all", async (event, path) => {
   const fileName = path.split("/").pop();
   const content = await Bun.file(path).text();
 
