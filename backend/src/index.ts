@@ -1,8 +1,62 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { upgradeWebSocket, websocket } from 'hono/bun'
+import chokidar from 'chokidar'
+import mysql from 'mysql2/promise'
 
 const app = new Hono()
+
+const dbConfig = {
+  host: "db",
+  user: "root",
+  password: "password",
+  database: "user",
+}
+
+
+// 1. サーバー起動時にDBからファイルを復元する
+async function restoreFilesFromDB() {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    const [rows]: any = await connection.execute("SELECT name, content FROM files");
+    
+    // editディレクトリがなければ作成
+    const fs = require('fs');
+    if (!fs.existsSync('./edit')) fs.mkdirSync('./edit');
+
+    for (const file of rows) {
+      await Bun.write(`./edit/${file.name}`, file.content);
+      console.log(`Restored: ${file.name}`);
+    }
+    await connection.end();
+    console.log("✅ Files restored from DB.");
+  } catch (e) {
+    console.error("❌ DB Restore Error:", e);
+  }
+}
+
+await restoreFilesFromDB();
+
+// 2. ファイル変更を監視してDBに保存する (chokidar)
+chokidar.watch("./edit", { ignoreInitial: true }).on("all", async (event, path) => {
+  if (event === "add" || event === "change") {
+    try {
+      const fileName = path.split("/").pop();
+      const content = await Bun.file(path).text();
+      const connection = await mysql.createConnection(dbConfig);
+      
+      // REPLACE INTO で、あれば更新、なければ挿入
+      await connection.execute(
+        "REPLACE INTO files (name, content) VALUES (?, ?)",
+        [fileName, content]
+      );
+      await connection.end();
+      console.log(`💾 Synced to DB: ${fileName}`);
+    } catch (e) {
+      console.error("❌ Sync Error:", e);
+    }
+  }
+});
 
 // フロントエンド(Vite)からのアクセスを許可
 app.get('/', (c) => c.text('Hono!'))
@@ -19,6 +73,7 @@ app.get(
         // 'script' コマンドを使用して TTY をエミュレートします
         // これにより 'can't access tty' が消え、文字が画面に表示されるようになります
         proc = Bun.spawn(["script", "-qec", "/bin/sh", "/dev/null"], {
+          cwd: "./edit",
           stdin: "pipe",
           stdout: "pipe",
           stderr: "pipe",

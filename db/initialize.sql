@@ -10,3 +10,10 @@ CREATE TABLE IF NOT EXISTS notes (
 
 -- テスト用に最初の1件を入れておくと動作確認が楽です
 INSERT INTO notes (title, content) VALUES ('README', 'Welcome to Windows 95 on React!');
+
+
+CREATE TABLE files (
+  name VARCHAR(255) PRIMARY KEY,
+  content TEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
