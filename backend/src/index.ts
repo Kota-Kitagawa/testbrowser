@@ -10,7 +10,7 @@ const dbConfig = {
   host: "db",
   user: "root",
   password: "password",
-  database: "user",
+  database: "terminal_db"
 }
 
 

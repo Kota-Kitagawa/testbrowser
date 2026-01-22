@@ -1,4 +1,4 @@
-USE user;
+USE terminal_db;
 
 CREATE TABLE IF NOT EXISTS notes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS notes (
 INSERT INTO notes (title, content) VALUES ('README', 'Welcome to Windows 95 on React!');
 
 
-CREATE TABLE files (
+CREATE TABLE IF NOT EXISTS files (
   name VARCHAR(255) PRIMARY KEY,
   content TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
